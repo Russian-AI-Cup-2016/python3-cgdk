@@ -42,6 +42,8 @@ class RemoteProcessClient:
         self.socket = _socket.socket()
         self.socket.setsockopt(_socket.IPPROTO_TCP, _socket.TCP_NODELAY, True)
         self.socket.connect((host, port))
+        self.players = None
+        self.buildings = None
         self.trees = None
 
     def write_token_message(self, token):
@@ -50,7 +52,7 @@ class RemoteProcessClient:
 
     def write_protocol_version_message(self):
         self.write_enum(RemoteProcessClient.MessageType.PROTOCOL_VERSION)
-        self.write_int(1)
+        self.write_int(2)
 
     def read_team_size_message(self):
         message_type = self.read_enum(RemoteProcessClient.MessageType)
@@ -161,13 +163,14 @@ class RemoteProcessClient:
     def read_buildings(self):
         building_count = self.read_int()
         if building_count < 0:
-            return None
+            return self.buildings
 
         buildings = []
 
         for _ in range(building_count):
             buildings.append(self.read_building())
 
+        self.buildings = buildings
         return buildings
 
     def write_buildings(self, buildings):
@@ -490,13 +493,14 @@ class RemoteProcessClient:
     def read_players(self):
         player_count = self.read_int()
         if player_count < 0:
-            return None
+            return self.players
 
         players = []
 
         for _ in range(player_count):
             players.append(self.read_player())
 
+        self.players = players
         return players
 
     def write_players(self, players):
